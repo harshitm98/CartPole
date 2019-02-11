@@ -20,14 +20,15 @@ class Agent():
         self.weight_backup = "cartpole_weight.h5"
         self.state_size = state_size
         self.action_size = action_size
-        self.memory = deque(maxlen = 2000)
-        self.learning_rate = 0.001
-        self.gamma = 0.95
-        self.exploration_rate = 1.0
-        self.exploration_min = 0.01
-        self.exploration_decay = 0.995
-        self.brain = self._build_model()
+        self.memory = deque(maxlen = 2000) #double ended queue of 2000 length
+        self.learning_rate = 0.001 # learning rate (alpha)
+        self.gamma = 0.95 # future discount reward. 
+        self.exploration_rate = 1.0 # high exploration rate at the start
+        self.exploration_min = 0.01 # low exploration rate at the end ie high expoitation rate
+        self.exploration_decay = 0.995 
+        self.brain = self._build_model() # neural network
     
+    # returns the neural network model and functions like .save(), .predict() are preformed
     def _build_model(self):
         model = Sequential()
         model.add(Dense(24, input_dim=self.state_size, activation='relu'))
@@ -45,13 +46,16 @@ class Agent():
         
     def act(self, state):
         if np.random.rand() <= self.exploration_rate:
-            return random.randrange(self.action_size)
+            return random.randrange(self.action_size) # choose random action
         act_values = self.brain.predict(state)
-        return np.argmax(act_values[0])
+        return np.argmax(act_values[0]) # max of all the values predicted by the NN
     
+    # remember() function will simply store states, actions 
+    # and resulting rewards into the memory
     def remember(self, state, action, reward, next_state, done):
         self.memory.append((state, action, reward, next_state, done))
         
+    # train our neural network on past experiences; but batch wise
     def replay(self, sample_batch_size):
         if len(self.memory) < sample_batch_size:
             return
@@ -61,7 +65,9 @@ class Agent():
             if not done:
                 target = reward + self.gamma*np.amax(self.brain.predict(next_state)[0])
             target_f = self.brain.predict(state)
+            # updating the target
             target_f[0][action] = target
+            # .fit(), takes care of minimizing the loss ie subtracts the loss, squares it 
             self.brain.fit(state, target_f, epochs=1,verbose=0)
         if self.exploration_rate > self.exploration_min:
             self.exploration_rate *= self.exploration_decay
@@ -84,6 +90,7 @@ class CartPole:
                 index = 0
                 
                 while not done:
+                    # Uncomment the below line to visualize the training
                     #self.env.render()
                     action = self.agent.act(state)
                     next_state, reward, done, _ = self.env.step(action)
@@ -100,9 +107,3 @@ if __name__ == "__main__":
     cartpole = CartPole()
     cartpole.run()
                     
-                
-        
-    
-    
-    
-        
