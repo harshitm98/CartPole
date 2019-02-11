@@ -91,7 +91,7 @@ class CartPole:
                 
                 while not done:
                     # Uncomment the below line to visualize the training
-                    #self.env.render()
+                    self.env.render()
                     action = self.agent.act(state)
                     next_state, reward, done, _ = self.env.step(action)
                     next_state = np.reshape(next_state, [1, self.state_size])
